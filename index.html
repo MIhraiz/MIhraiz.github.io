@@ -78,11 +78,11 @@
   .enter{margin-top:1.6rem;display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;background:transparent;border:1px solid rgba(232,200,120,.5);color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.12em;padding:.7rem 1.2rem;border-radius:3px;transition:background .25s,transform .25s;}
   .enter:hover{background:rgba(232,200,120,.12);transform:translateY(-2px);}
 
-  .links{margin-top:1.7rem;display:flex;gap:1.4rem;justify-content:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:.85rem;}
+  .links{position:relative;margin-top:1.7rem;display:flex;gap:1.4rem;justify-content:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:.85rem;}
   .links a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(232,200,120,.45);}
-  .email-toast{margin-top:1rem;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.06em;color:var(--moss-deep);background:var(--gold);border-radius:99px;padding:.5rem 1rem;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .3s ease,transform .3s ease;}
-  .email-toast.show{opacity:1;transform:none;}
-  .footnote{margin-top:1.6rem;font-size:.8rem;color:rgba(241,236,218,.6);}
+  .email-toast{position:absolute;top:100%;left:50%;margin-top:.6rem;white-space:nowrap;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.06em;color:var(--moss-deep);background:var(--gold);border-radius:99px;padding:.5rem 1rem;opacity:0;transform:translateX(-50%) translateY(6px);pointer-events:none;transition:opacity .3s ease,transform .3s ease;}
+  .email-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .footnote{margin-top:.1rem;font-size:.8rem;color:rgba(241,236,218,.6);}
 
   .cue{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:3;font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(241,236,218,.55);text-align:center;}
   .cue span{display:block;margin:0 auto .5rem;width:1px;height:30px;background:linear-gradient(var(--sage),transparent);animation:bob 2.4s ease-in-out infinite;}
@@ -500,7 +500,7 @@
       <a href="mailto:mohammad.a.ihraiz@gmail.com?subject=Let%27s%20Build%20Something%20Together" id="email-link" data-email="mohammad.a.ihraiz@gmail.com">Email</a>
       <a href="https://linkedin.com/in/mihraiz" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://github.com/MIhraiz" target="_blank" rel="noopener">GitHub</a>
-      <a href="cv.pdf" target="_blank" rel="noopener">Full CV (PDF)</a>
+      <a href="Mohammad%20Ihraiz%20CV.pdf" target="_blank" rel="noopener">Full CV (PDF)</a>
     </div>
     <div class="email-toast" id="email-toast" role="status" aria-live="polite">Email copied · opening your mail app</div>
     <p class="footnote">B.Sc. Computer Science, Birzeit University · Arabic (native), English (C1) · References available on request.</p>
