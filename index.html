@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mohammad Ihraiz · Mobile · Backend · Full-stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,0,600;9..144,1,400;9..144,1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--moss-deep:#14210f;--moss:#3c5a2a;--fern:#6f9a3f;--sage:#a7b878;
+    --gold:#e8c878;--glow:#ffd98a;--wood:#5a4631;--light:#f1ecda;--parch:#efe7d3;--ink:#2c2418;}
+  html{scrollbar-width:thin;scrollbar-color:var(--fern) var(--moss-deep);}
+  html::-webkit-scrollbar{width:12px;}
+  html::-webkit-scrollbar-track{background:var(--moss-deep);}
+  html::-webkit-scrollbar-thumb{background:linear-gradient(var(--fern),var(--moss));border-radius:6px;border:2px solid var(--moss-deep);}
+  html::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--moss-deep);color:var(--light);font-family:'Inter',system-ui,sans-serif;line-height:1.6;}
+  body.locked{overflow:hidden;}
+
+  .glow{position:fixed;inset:0;z-index:6;pointer-events:none;background:radial-gradient(125% 95% at 50% 8%,transparent 46%,rgba(20,33,15,.5) 100%);}
+  .flies{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+  .fly{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px 2px rgba(255,217,138,.75);opacity:.6;animation:drift 8s ease-in-out infinite;}
+  @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(16px,-26px)}}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:16;display:flex;justify-content:space-between;align-items:center;
+    padding:1.1rem 6vw;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.14em;
+    background:linear-gradient(rgba(20,33,15,.55),transparent);}
+  nav .name{color:var(--light);text-transform:uppercase;letter-spacing:.2em;}
+  .nav-links{display:flex;gap:1.2rem;}
+  nav a{color:rgba(241,236,218,.7);text-decoration:none;transition:color .25s;}
+  nav a:hover{color:var(--gold);}
+  .burger{display:none;position:relative;z-index:20;width:24px;height:18px;background:transparent;border:none;cursor:pointer;padding:0;}
+  .burger .bar{position:absolute;left:0;width:100%;height:2px;background:var(--gold);border-radius:2px;transition:transform .25s ease,opacity .2s ease;will-change:transform,opacity;backface-visibility:hidden;}
+  .burger .bar1{top:0;}
+  .burger .bar2{top:8px;}
+  .burger .bar3{top:16px;}
+  @media(max-width:760px){
+    .burger{display:block;}
+    .nav-links{display:flex;position:fixed;top:0;right:0;bottom:0;width:min(78vw,20rem);flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;gap:0;margin:0;
+      background:var(--moss-deep);border-left:1px solid rgba(232,200,120,.25);box-shadow:-20px 0 60px rgba(0,0,0,.5);
+      padding-top:5.5rem;transform:translateX(100%);transition:transform .32s ease;z-index:15;overflow-y:auto;}
+    .nav-links.open{transform:translateX(0);}
+    .nav-links a{padding:1.1rem 6vw;border-top:1px solid rgba(241,236,218,.08);font-size:1.05rem;}
+    .nav-backdrop{position:fixed;inset:0;background:rgba(10,16,8,.6);backdrop-filter:blur(2px);z-index:14;
+      opacity:0;visibility:hidden;transition:opacity .3s ease;}
+    .nav-backdrop.show{opacity:1;visibility:visible;}
+  }
+
+  .scene{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding:6rem max(7vw, calc((100% - 1480px) / 2));}
+  .bg{position:absolute;inset:-8% 0;width:100%;height:116%;z-index:0;will-change:transform;}
+  .bg svg{width:100%;height:100%;display:block;}
+  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;}
+  .right .scrim{background:linear-gradient(90deg,transparent 26%,rgba(20,33,15,.78) 76%);}
+  .left  .scrim{background:linear-gradient(90deg,rgba(20,33,15,.78) 24%,transparent 74%);}
+  .center .scrim{background:radial-gradient(72% 72% at 50% 52%,rgba(20,33,15,.8),transparent 78%);}
+
+  .content{position:relative;z-index:2;max-width:34rem;width:100%;opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s ease;}
+  .in .content{opacity:1;transform:none;}
+  .right .content{margin-left:auto;}
+  .center .content{margin:0 auto;text-align:center;max-width:42rem;}
+
+  .avatar{width:88px;height:88px;border-radius:50%;border:2px solid rgba(232,200,120,.6);
+    background:radial-gradient(circle at 40% 35%,#3c5a2a,#1c2c16);display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold);margin-bottom:1.4rem;overflow:hidden;}
+  .avatar img{width:100%;height:100%;object-fit:cover;}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2.4rem,6vw,5rem);line-height:1.0;letter-spacing:-.01em;max-width:16ch;text-shadow:0 2px 36px rgba(0,0,0,.6);}
+  h1 em{font-style:italic;font-weight:400;color:var(--gold);}
+  .scene h2{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(1.9rem,4vw,3rem);line-height:1.05;text-shadow:0 2px 24px rgba(0,0,0,.55);}
+  .lead{margin-top:1.3rem;font-size:clamp(1.05rem,1.5vw,1.2rem);color:rgba(241,236,218,.86);max-width:40ch;}
+  .scene>.content p{margin-top:1rem;color:rgba(241,236,218,.9);max-width:44ch;text-shadow:0 1px 16px rgba(0,0,0,.5);}
+  .center>.content p{max-width:54ch;margin-left:auto;margin-right:auto;}
+  .meta{margin-top:1.3rem;font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.05em;color:rgba(167,184,120,.95);}
+  .enter{margin-top:1.6rem;display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;background:transparent;border:1px solid rgba(232,200,120,.5);color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.12em;padding:.7rem 1.2rem;border-radius:3px;transition:background .25s,transform .25s;}
+  .enter:hover{background:rgba(232,200,120,.12);transform:translateY(-2px);}
+
+  .links{margin-top:1.7rem;display:flex;gap:1.4rem;justify-content:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:.85rem;}
+  .links a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(232,200,120,.45);}
+  .email-toast{margin-top:1rem;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.06em;color:var(--moss-deep);background:var(--gold);border-radius:99px;padding:.5rem 1rem;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .3s ease,transform .3s ease;}
+  .email-toast.show{opacity:1;transform:none;}
+  .footnote{margin-top:1.6rem;font-size:.8rem;color:rgba(241,236,218,.6);}
+
+  .cue{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:3;font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(241,236,218,.55);text-align:center;}
+  .cue span{display:block;margin:0 auto .5rem;width:1px;height:30px;background:linear-gradient(var(--sage),transparent);animation:bob 2.4s ease-in-out infinite;}
+  @keyframes bob{0%,100%{opacity:.4}50%{opacity:1}}
+
+  .study{position:fixed;inset:0;z-index:20;display:flex;justify-content:center;align-items:flex-start;padding:5vh 5vw;background:rgba(12,20,10,.74);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .study.open{opacity:1;visibility:visible;}
+  .study-inner{position:relative;background:var(--parch);color:var(--ink);max-width:46rem;width:100%;max-height:90vh;overflow:auto;border-radius:6px;padding:3rem 3rem 3.2rem;box-shadow:0 30px 90px rgba(0,0,0,.5);transform:translateY(20px);transition:transform .35s ease;
+    scrollbar-width:thin;scrollbar-color:var(--fern) rgba(44,36,24,.08);}
+  .study-inner::-webkit-scrollbar{width:10px;}
+  .study-inner::-webkit-scrollbar-track{background:rgba(44,36,24,.08);border-radius:6px;}
+  .study-inner::-webkit-scrollbar-thumb{background:var(--fern);border-radius:6px;border:2px solid var(--parch);}
+  .study-inner::-webkit-scrollbar-thumb:hover{background:var(--moss);}
+  .study.open .study-inner{transform:none;}
+  .close{position:sticky;top:0;float:right;margin:-1rem -1rem 0 0;width:2.4rem;height:2.4rem;border:none;border-radius:50%;background:rgba(44,36,24,.08);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .close:hover{background:rgba(44,36,24,.16);}
+  .study-tag{font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.26em;text-transform:uppercase;color:#9a7a32;margin-bottom:.8rem;}
+  .study-inner h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.8rem,3.6vw,2.6rem);line-height:1.06;color:var(--ink);}
+  .study-lead{font-size:1.1rem;margin-top:.9rem;color:#4a4030;font-style:italic;}
+  .study-inner h3{font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:#8a6a2e;margin:1.9rem 0 .6rem;}
+  .study-inner p{color:#39301f;margin-top:.5rem;}
+  .study-inner ul{margin:.5rem 0 0 1.1rem;color:#39301f;}
+  .study-inner li{margin:.35rem 0;}
+  .study-stack{margin-top:1.8rem;font-family:'IBM Plex Mono',monospace;font-size:.76rem;letter-spacing:.04em;color:#6a5526;border-top:1px solid rgba(44,36,24,.16);padding-top:1rem;}
+  .study-links{margin-top:.9rem;font-size:.9rem;}
+  .study-links a{color:#9a6a1e;text-decoration:none;border-bottom:1px solid rgba(154,106,30,.4);}
+
+  #yard .content{max-width:1120px;}
+  .products{margin-top:2.2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.1rem;text-align:left;}
+  .product{display:block;text-decoration:none;color:inherit;background:rgba(20,33,14,.55);backdrop-filter:blur(4px);
+    border:1px solid rgba(167,184,120,.3);border-radius:5px;padding:1.3rem;transition:transform .25s,border-color .25s,background .25s;}
+  .product:hover{transform:translateY(-4px);border-color:rgba(232,200,120,.55);background:rgba(20,33,14,.72);}
+  .p-name{font-family:'Fraunces',serif;font-size:1.12rem;color:var(--light);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:99px;}
+  .badge.live{background:rgba(232,200,120,.18);color:var(--gold);border:1px solid rgba(232,200,120,.5);}
+  .badge.dev{background:rgba(167,184,120,.12);color:var(--sage);border:1px solid rgba(167,184,120,.4);}
+  .p-desc{margin-top:.6rem;font-size:.88rem;color:rgba(241,236,218,.82);line-height:1.5;}
+  .p-role{margin-top:.55rem;font-size:.76rem;color:rgba(241,236,218,.6);}
+  .p-tags{margin-top:.7rem;font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.04em;color:rgba(167,184,120,.9);}
+  .yard-note{margin-top:1.8rem;text-align:center;font-size:.86rem;color:rgba(241,236,218,.62);}
+  .yard-note b{color:var(--gold);font-weight:500;}
+  .in-progress{margin-top:2.4rem;padding-top:1.8rem;border-top:1px solid rgba(241,236,218,.14);}
+  .ip-label{display:flex;align-items:center;justify-content:center;gap:.6rem;font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(241,236,218,.45);margin-bottom:1.1rem;}
+  .ip-row{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;}
+  .ip-item{display:flex;align-items:baseline;gap:.5rem;background:rgba(20,33,14,.4);border:1px solid rgba(241,236,218,.1);border-radius:10px;padding:.55rem .9rem;}
+  .ip-name{font-family:'Fraunces',serif;font-size:.92rem;color:var(--light);}
+  .ip-desc{font-size:.76rem;color:rgba(241,236,218,.55);}
+  @media(prefers-reduced-motion:reduce){.fly{animation:none;}.cue span{animation:none;}.content{opacity:1;transform:none;transition:none;}.study,.study-inner{transition:none;}}
+  @media(max-width:760px){.right .content,.left .content{margin:0;}.right .scrim,.left .scrim{background:linear-gradient(rgba(20,33,15,.25),rgba(20,33,15,.6));}.scene{padding:7rem 8vw;}.study-inner{padding:2.2rem 1.5rem;}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<nav>
+  <span class="name">Mohammad Ihraiz</span>
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+    <span class="bar bar1"></span><span class="bar bar2"></span><span class="bar bar3"></span>
+  </button>
+  <span class="nav-links" id="nav-links"><a href="#about">About</a><a href="#yard">Shipped</a><a href="#mobile">Mobile</a><a href="#backend">Backend</a><a href="#freelance">Freelance</a><a href="#games">Games</a><a href="#contact">Contact</a></span>
+</nav>
+<div class="nav-backdrop" id="nav-backdrop"></div>
+
+<!-- HERO + BIO -->
+<section class="scene left" id="hero">
+  <div class="bg" data-parallax="0.2"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="sky" cx="50%" cy="18%" r="85%"><stop offset="0%" stop-color="#3a5a2a"/><stop offset="45%" stop-color="#22381a"/><stop offset="100%" stop-color="#14210f"/></radialGradient>
+      <radialGradient id="dg" cx="50%" cy="55%" r="60%"><stop offset="0%" stop-color="#fff1c4"/><stop offset="55%" stop-color="#ffcf7a"/><stop offset="100%" stop-color="#b06a2a"/></radialGradient>
+      <radialGradient id="wg" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#ffe9b0"/><stop offset="100%" stop-color="#d89a48"/></radialGradient>
+      <linearGradient id="ew" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6b5238"/><stop offset="100%" stop-color="#473325"/></linearGradient>
+      <linearGradient id="mr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4c6e32"/><stop offset="100%" stop-color="#2f4a1f"/></linearGradient>
+      <linearGradient id="ray" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe7a8" stop-opacity="0.16"/><stop offset="100%" stop-color="#ffe7a8" stop-opacity="0"/></linearGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#sky)"/><circle cx="560" cy="120" r="150" fill="#ffe7a8" opacity="0.10"/>
+    <g fill="#1f3417" opacity="0.9"><path d="M70 700 L70 360 Q120 320 150 360 L150 700Z"/><path d="M180 700 L180 300 Q230 250 270 300 L270 700Z"/><path d="M760 700 L760 330 Q800 290 840 330 L840 700Z"/><path d="M880 700 L880 280 Q920 240 960 280 L960 700Z"/></g>
+    <polygon points="560,0 650,0 540,500 470,500" fill="url(#ray)"/>
+    <g transform="translate(150,0)">
+      <path d="M360 700 Q350 430 400 380 Q500 350 600 380 Q650 430 640 700 Z" fill="url(#ew)"/>
+      <path d="M330 410 Q500 250 670 410 Q640 470 500 450 Q360 470 330 410Z" fill="url(#mr)"/>
+      <ellipse cx="430" cy="400" rx="40" ry="22" fill="#3c5a2a"/><ellipse cx="560" cy="405" rx="46" ry="24" fill="#345020"/>
+      <circle cx="420" cy="500" r="32" fill="url(#wg)" stroke="#3a2c20" stroke-width="6"/>
+      <path d="M455 700 L455 525 Q500 466 545 525 L545 700 Z" fill="url(#dg)"/>
+      <path d="M455 525 Q500 466 545 525" fill="none" stroke="#2a1d12" stroke-width="6"/>
+      <ellipse cx="500" cy="690" rx="90" ry="18" fill="#ffe6a8" opacity="0.45"/>
+      <g><rect x="356" y="640" width="10" height="26" rx="4" fill="#e8e0cf"/><path d="M340 642 Q361 612 382 642 Z" fill="#b0432e"/></g>
+    </g>
+    <g fill="#5d8a34"><path d="M-10 700 Q60 540 30 700Z"/><path d="M40 700 Q120 520 90 700Z"/><path d="M1010 700 Q940 540 970 700Z"/><path d="M940 700 Q860 530 890 700Z"/></g>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="avatar"><img src="photo.jpg" alt="Illustrated portrait of Mohammad Ihraiz"></div>
+    <div class="eyebrow">Mohammad Ihraiz · Hebron &amp; Ramallah, Palestine</div>
+    <h1>I build software, <em>front to back</em>.</h1>
+    <p class="lead">Android &amp; Kotlin Multiplatform engineer with backend and system-design depth, and a full-stack freelancer shipping real products for real businesses. Welcome to my house in the woods; scroll through the rooms.</p>
+  </div>
+  <div class="cue"><span></span>Scroll</div>
+</section>
+
+<!-- ABOUT / PHILOSOPHY -->
+<section class="scene center" id="about">
+  <div class="bg" data-parallax="0.12"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs><radialGradient id="ab" cx="50%" cy="30%" r="90%"><stop offset="0%" stop-color="#2c4720"/><stop offset="55%" stop-color="#1d3115"/><stop offset="100%" stop-color="#14210f"/></radialGradient></defs>
+    <rect width="1000" height="700" fill="url(#ab)"/>
+    <g fill="#1c3015"><path d="M90 700 L90 300 Q140 250 180 300 L180 700Z"/><path d="M820 700 L820 300 Q860 250 910 300 L910 700Z"/></g>
+    <!-- winding path -->
+    <path d="M470 700 Q520 540 480 420 Q450 320 500 220" fill="none" stroke="#6a5a3a" stroke-width="46" stroke-linecap="round" opacity="0.55"/>
+    <path d="M470 700 Q520 540 480 420 Q450 320 500 220" fill="none" stroke="#8a7a52" stroke-width="20" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="500" cy="210" r="60" fill="#ffe7a8" opacity="0.14"/></svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">How I work</div>
+    <h2>A generalist, on purpose.</h2>
+    <p>I'm a software engineer drawn to the whole lifecycle: requirements, architecture, implementation, deployment, and the unglamorous work of keeping things running. That pull is what keeps me picking up new tools and technologies, and it's deliberate, not restless. Breadth doesn't dilute depth, it compounds it.</p>
+    <p>Knowing how the mobile app, the backend, the build pipeline, and the product fit together makes me sharper inside my own specialty, and it means I can contribute across teams, not just within mine. I go deep where it counts, stay curious everywhere else, and I know my craft cold.</p>
+  </div>
+</section>
+
+<!-- FRONT YARD · SHIPPED -->
+<section class="scene center" id="yard">
+  <div class="bg" data-parallax="0.12"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs><radialGradient id="yd" cx="50%" cy="26%" r="92%"><stop offset="0%" stop-color="#2c4720"/><stop offset="55%" stop-color="#1d3115"/><stop offset="100%" stop-color="#14210f"/></radialGradient></defs>
+    <rect width="1000" height="700" fill="url(#yd)"/>
+    <polygon points="0,470 1000,470 1000,700 0,700" fill="#2d451f"/>
+    <!-- low wooden fence -->
+    <g stroke="#5a4128" stroke-width="7"><line x1="60" y1="455" x2="940" y2="455"/><line x1="60" y1="430" x2="940" y2="430"/></g>
+    <g fill="#6b5238"><rect x="90" y="410" width="12" height="70"/><rect x="250" y="410" width="12" height="70"/><rect x="410" y="410" width="12" height="70"/><rect x="580" y="410" width="12" height="70"/><rect x="740" y="410" width="12" height="70"/><rect x="900" y="410" width="12" height="70"/></g>
+    <!-- bushes + flowers + mushrooms -->
+    <ellipse cx="160" cy="480" rx="60" ry="34" fill="#365021"/><ellipse cx="840" cy="482" rx="70" ry="38" fill="#314a1f"/>
+    <circle cx="140" cy="470" r="5" fill="#e8c878"/><circle cx="180" cy="478" r="5" fill="#c75a3a"/><circle cx="820" cy="472" r="5" fill="#e8c878"/>
+    <!-- back-left mushroom, slightly smaller and higher (further away), tucked close to the front one -->
+    <g><rect x="452" y="488" width="8" height="18" rx="3" fill="#e8e0cf"/><path d="M440 490 Q456 468 472 490 Z" fill="#b0432e"/></g>
+    <!-- back-right mushroom, same depth as back-left, tucked close on the other side -->
+    <g><rect x="482" y="486" width="8" height="18" rx="3" fill="#e8e0cf"/><path d="M470 488 Q486 466 502 488 Z" fill="#b0432e"/></g>
+    <!-- a tiny mushroom, not yet fully grown, right at the base of the big one, same ground line -->
+    <g><rect x="478" y="516" width="5" height="10" rx="2" fill="#e8e0cf"/><path d="M472 518 Q480 506 488 518 Z" fill="#b0432e"/></g>
+    <!-- front mushroom, biggest and lowest, closest to the viewer, overlapping the ones behind it -->
+    <g><rect x="463" y="500" width="11" height="26" rx="4" fill="#e8e0cf"/><path d="M445 502 Q468 472 491 502 Z" fill="#b0432e"/></g>
+    <circle cx="500" cy="150" r="120" fill="#ffe7a8" opacity="0.09"/></svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">The front yard</div>
+    <h2>Shipped &amp; out in the world</h2>
+    <p>The things you can walk up and look at: products I've built or helped build that are live and in people's hands.</p>
+    <div class="products">
+      <a class="product" href="https://play.google.com/store/apps/details?id=com.harri.manage" target="_blank" rel="noopener">
+        <div class="p-name">Harri Live <span class="badge live">Live</span></div>
+        <div class="p-desc">Manager app for shift scheduling and team communication in hospitality.</div>
+        <div class="p-role">Android feature development</div>
+        <div class="p-tags">Android · Kotlin · MVVM</div>
+      </a>
+      <a class="product" href="https://play.google.com/store/apps/details?id=com.harri.team" target="_blank" rel="noopener">
+        <div class="p-name">TeamLive <span class="badge live">Live</span></div>
+        <div class="p-desc">Employee app for shifts, availability, and team communication.</div>
+        <div class="p-role">Android feature development</div>
+        <div class="p-tags">Android · Kotlin · MVVM</div>
+      </a>
+      <a class="product" href="https://play.google.com/store/apps/details?id=com.harri.hub" target="_blank" rel="noopener">
+        <div class="p-name">TeamHub <span class="badge live">Live</span></div>
+        <div class="p-desc">Time-clock and attendance app with on-site clock-in.</div>
+        <div class="p-role">Android feature development</div>
+        <div class="p-tags">Android · Kotlin · MVVM</div>
+      </a>
+      <a class="product" href="https://flashstore.ps" target="_blank" rel="noopener">
+        <div class="p-name">FlashStore.ps <span class="badge live">Live</span></div>
+        <div class="p-desc">Full-stack platform with an admin panel plus agent and client apps.</div>
+        <div class="p-role">Solo full-stack · built with Claude Code</div>
+        <div class="p-tags">Next.js · full-stack · admin</div>
+      </a>
+      <a class="product" href="https://barakaos.com/" target="_blank" rel="noopener">
+        <div class="p-name">Baraka PoS <span class="badge live">Live</span></div>
+        <div class="p-desc">A point-of-sale platform on an event-driven microservices backend.</div>
+        <div class="p-role">Backend engineer · auth, RBAC, core services</div>
+        <div class="p-tags">TypeScript · microservices · AWS</div>
+      </a>
+    </div>
+    <div class="in-progress">
+      <div class="ip-label">Not yet bloomed <span class="badge dev">In progress</span></div>
+      <div class="ip-row">
+        <div class="ip-item"><span class="ip-name">Omailo</span><span class="ip-desc">Kotlin Multiplatform (KMP) mailing app</span></div>
+        <div class="ip-item"><span class="ip-name">Onfinity</span><span class="ip-desc">KMP, AI-powered link-in-bio app</span></div>
+        <div class="ip-item"><span class="ip-name">M&amp;B</span><span class="ip-desc">retail &amp; wholesale website targeting Palestine</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOBILE -->
+<section class="scene right" id="mobile">
+  <div class="bg" data-parallax="0.15"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="w1" cx="38%" cy="36%" r="86%"><stop offset="0%" stop-color="#e7d0a4"/><stop offset="60%" stop-color="#c2a679"/><stop offset="100%" stop-color="#7c6242"/></radialGradient>
+      <linearGradient id="f1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7a5a38"/><stop offset="100%" stop-color="#4e3a24"/></linearGradient>
+      <radialGradient id="lan1" cx="50%" cy="44%" r="62%"><stop offset="0%" stop-color="#fff3cf"/><stop offset="50%" stop-color="#ffcf7a"/><stop offset="100%" stop-color="#b9772e"/></radialGradient>
+      <radialGradient id="night1" cx="50%" cy="38%" r="75%"><stop offset="0%" stop-color="#33466b"/><stop offset="60%" stop-color="#1b2740"/><stop offset="100%" stop-color="#0d1424"/></radialGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#w1)"/>
+    <polygon points="0,530 1000,530 1000,700 0,700" fill="url(#f1)"/>
+    <polygon points="0,530 1000,530 880,562 120,562" fill="#3e2e1c" opacity="0.35"/>
+    <!-- night window: moon and stars outside -->
+    <circle cx="186" cy="178" r="54" fill="url(#night1)" stroke="#3a2c20" stroke-width="8"/>
+    <circle cx="168" cy="160" r="13" fill="#eef0e0" opacity="0.9"/>
+    <circle cx="200" cy="150" r="1.6" fill="#dfe6f0"/><circle cx="212" cy="186" r="1.6" fill="#dfe6f0"/><circle cx="158" cy="196" r="1.6" fill="#dfe6f0"/><circle cx="196" cy="206" r="1.4" fill="#dfe6f0"/>
+    <line x1="186" y1="124" x2="186" y2="232" stroke="#3a2c20" stroke-width="5"/><line x1="132" y1="178" x2="240" y2="178" stroke="#3a2c20" stroke-width="5"/>
+    <!-- a few small panes, lit by the same warm light -->
+    <g stroke="#3a2c20" stroke-width="5">
+      <rect x="360" y="250" width="48" height="60" rx="8" fill="url(#lan1)" opacity="0.85"/>
+      <rect x="432" y="280" width="42" height="52" rx="8" fill="url(#lan1)" opacity="0.7"/>
+      <rect x="396" y="184" width="40" height="50" rx="8" fill="url(#lan1)" opacity="0.6"/>
+    </g>
+    <!-- small table -->
+    <rect x="196" y="476" width="150" height="14" rx="3" fill="#6b4f30"/>
+    <rect x="212" y="490" width="12" height="48" fill="#5a4128"/><rect x="318" y="490" width="12" height="48" fill="#5a4128"/>
+    <!-- the lantern: one warm source -->
+    <ellipse cx="270" cy="430" rx="100" ry="90" fill="url(#lan1)" opacity="0.32"/>
+    <line x1="270" y1="356" x2="270" y2="380" stroke="#3a2c20" stroke-width="4"/>
+    <rect x="246" y="378" width="48" height="10" rx="3" fill="#3a2c20"/>
+    <path d="M250 388 h40 l-5 66 h-30 Z" fill="url(#lan1)" stroke="#3a2c20" stroke-width="3"/>
+    <rect x="252" y="454" width="36" height="9" rx="3" fill="#3a2c20"/>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">Room I · Mobile engineering</div>
+    <h2>Android &amp; Kotlin Multiplatform</h2>
+    <p>Deputy lead on a mobile team. I made the case for Kotlin Multiplatform across our products, built the foundation it runs on, and now lead the mobile side of a new AI-powered product.</p>
+    <div class="meta">Android · Kotlin · KMP · Compose · Ktor Client · offline-first</div>
+    <button class="enter" data-study="mobile">Step inside →</button>
+  </div>
+</section>
+
+<!-- BACKEND -->
+<section class="scene right" id="backend">
+  <div class="bg" data-parallax="0.15"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="w2" cx="34%" cy="42%" r="82%"><stop offset="0%" stop-color="#e9cf9c"/><stop offset="60%" stop-color="#c79f63"/><stop offset="100%" stop-color="#7c5f38"/></radialGradient>
+      <linearGradient id="f2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#735131"/><stop offset="100%" stop-color="#46341f"/></linearGradient>
+      <radialGradient id="gw" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fff3cf"/><stop offset="50%" stop-color="#ffcf7a"/><stop offset="100%" stop-color="#b9772e"/></radialGradient>
+      <radialGradient id="gd" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fff0c4"/><stop offset="50%" stop-color="#e8a85a"/><stop offset="100%" stop-color="#8f5320"/></radialGradient>
+      <radialGradient id="ng" cx="50%" cy="38%" r="75%"><stop offset="0%" stop-color="#33466b"/><stop offset="60%" stop-color="#1b2740"/><stop offset="100%" stop-color="#0d1424"/></radialGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#w2)"/>
+    <polygon points="0,525 1000,525 1000,700 0,700" fill="url(#f2)"/>
+    <polygon points="0,525 1000,525 880,560 120,560" fill="#3e2e1c" opacity="0.35"/>
+    <ellipse cx="288" cy="360" rx="155" ry="170" fill="url(#gw)" opacity="0.12"/>
+    <!-- gears hovering above, centres glowing like night windows -->
+    <g>
+      <!-- big gear: 12 teeth -->
+      <g transform="translate(250 170)">
+        <g fill="#3a2c20">
+          <rect x="-6" y="-52" width="12" height="14"/><rect x="-6" y="38" width="12" height="14"/>
+          <rect x="-52" y="-6" width="14" height="12"/><rect x="38" y="-6" width="14" height="12"/>
+          <g transform="rotate(30)"><rect x="-6" y="-52" width="12" height="14"/><rect x="-6" y="38" width="12" height="14"/><rect x="-52" y="-6" width="14" height="12"/><rect x="38" y="-6" width="14" height="12"/></g>
+          <g transform="rotate(60)"><rect x="-6" y="-52" width="12" height="14"/><rect x="-6" y="38" width="12" height="14"/><rect x="-52" y="-6" width="14" height="12"/><rect x="38" y="-6" width="14" height="12"/></g>
+        </g>
+        <circle r="42" fill="#3a2c20"/>
+        <circle r="36" fill="url(#ng)" stroke="#22324e" stroke-width="2"/>
+        <g stroke="#22324e" stroke-width="3"><line x1="0" y1="-36" x2="0" y2="36"/><line x1="-36" y1="0" x2="36" y2="0"/></g>
+        <circle cx="-13" cy="-13" r="7" fill="#eef0e0" opacity="0.92"/><circle cx="15" cy="14" r="1.6" fill="#dfe6f0"/>
+      </g>
+      <!-- small gear: 10 teeth, no moon -->
+      <g transform="translate(330 132)">
+        <g fill="#3a2c20">
+          <rect x="-5" y="-38" width="10" height="11"/><rect x="-5" y="27" width="10" height="11"/>
+          <rect x="-38" y="-5" width="11" height="10"/><rect x="27" y="-5" width="11" height="10"/>
+          <g transform="rotate(45)"><rect x="-5" y="-38" width="10" height="11"/><rect x="-5" y="27" width="10" height="11"/><rect x="-38" y="-5" width="11" height="10"/><rect x="27" y="-5" width="11" height="10"/></g>
+        </g>
+        <circle r="30" fill="#3a2c20"/>
+        <circle r="25" fill="url(#ng)" stroke="#22324e" stroke-width="2"/>
+        <g stroke="#22324e" stroke-width="2.5"><line x1="0" y1="-25" x2="0" y2="25"/><line x1="-25" y1="0" x2="25" y2="0"/></g>
+        <circle cx="11" cy="-9" r="1.5" fill="#dfe6f0"/>
+      </g>
+    </g>
+    <!-- two wall-mounted shelves -->
+    <g fill="#5a4128">
+      <rect x="190" y="350" width="212" height="12" rx="2"/>
+      <path d="M206 362 L206 384 L224 362 Z"/><path d="M386 362 L386 384 L368 362 Z"/>
+      <rect x="190" y="440" width="212" height="12" rx="2"/>
+      <path d="M206 452 L206 474 L224 452 Z"/><path d="M386 452 L386 474 L368 452 Z"/>
+    </g>
+    <!-- glowing jars, neatly stored -->
+    <g stroke="#7a4f1e" stroke-width="2">
+      <ellipse cx="248" cy="326" rx="20" ry="24" fill="url(#gw)"/><rect x="318" y="302" width="40" height="48" rx="5" fill="url(#gw)"/>
+      <rect x="232" y="404" width="58" height="36" rx="5" fill="url(#gw)"/><ellipse cx="352" cy="418" rx="20" ry="22" fill="url(#gw)"/>
+    </g>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">Room II · Backend &amp; system design</div>
+    <h2>Services that hold up</h2>
+    <p>A year designing event-driven microservices: authentication, role-based access, and the architecture decisions behind them, including a deep evaluation of real-time stacks.</p>
+    <div class="meta">TypeScript · Node · Express · PostgreSQL · AWS · event-driven · RBAC</div>
+    <button class="enter" data-study="backend">Step inside →</button>
+  </div>
+</section>
+
+<!-- FREELANCE (full-stack) -->
+<section class="scene right" id="freelance">
+  <div class="bg" data-parallax="0.15"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="w3" cx="34%" cy="42%" r="84%"><stop offset="0%" stop-color="#e6cfa0"/><stop offset="60%" stop-color="#c2a06a"/><stop offset="100%" stop-color="#7a5e3a"/></radialGradient>
+      <linearGradient id="f3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#735131"/><stop offset="100%" stop-color="#46341f"/></linearGradient>
+      <radialGradient id="gw" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fff3cf"/><stop offset="50%" stop-color="#ffcf7a"/><stop offset="100%" stop-color="#b9772e"/></radialGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#w3)"/>
+    <polygon points="0,515 1000,515 1000,700 0,700" fill="url(#f3)"/>
+    <polygon points="0,515 1000,515 880,550 120,550" fill="#3e2e1c" opacity="0.35"/>
+    <ellipse cx="296" cy="400" rx="150" ry="120" fill="url(#gw)" opacity="0.12"/>
+    <rect x="150" y="470" width="320" height="18" rx="4" fill="#6b4f30"/><rect x="176" y="488" width="14" height="48" fill="#5a4128"/><rect x="430" y="488" width="14" height="48" fill="#5a4128"/>
+    <!-- storefront model -->
+    <rect x="206" y="318" width="180" height="16" rx="2" fill="#5a4128"/>
+    <rect x="214" y="334" width="164" height="136" fill="#6b4f30"/>
+    <polygon points="222,350 314,350 324,380 212,380" fill="#b0432e"/>
+    <g stroke="#efe7d3" stroke-width="6" opacity="0.85"><line x1="246" y1="350" x2="240" y2="380"/><line x1="276" y1="350" x2="274" y2="380"/><line x1="306" y1="350" x2="308" y2="380"/></g>
+    <rect x="230" y="390" width="74" height="68" rx="4" fill="url(#gw)" stroke="#3a2c20" stroke-width="4"/>
+    <line x1="267" y1="390" x2="267" y2="458" stroke="#3a2c20" stroke-width="3"/><line x1="230" y1="424" x2="304" y2="424" stroke="#3a2c20" stroke-width="3"/>
+    <rect x="322" y="406" width="40" height="62" rx="3" fill="#4a3526" stroke="#3a2c20" stroke-width="3"/><circle cx="354" cy="438" r="3" fill="#cdbb96"/>
+    <line x1="378" y1="350" x2="402" y2="350" stroke="#3a2c20" stroke-width="3"/><rect x="386" y="350" width="28" height="20" rx="2" fill="url(#gw)" stroke="#3a2c20" stroke-width="2"/>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">Room III · Freelance, full-stack</div>
+    <h2>Whole products, on my own</h2>
+    <p>Independently, I build complete web platforms front to back: the client experience, the admin panel, and the backend behind both, for real businesses.</p>
+    <div class="meta">Next.js · full-stack · admin panels · Arabic RTL · AI-assisted dev</div>
+    <button class="enter" data-study="freelance">Step inside →</button>
+  </div>
+</section>
+
+<!-- GAMES (in progress) -->
+<section class="scene right" id="games">
+  <div class="bg" data-parallax="0.15"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="w4" cx="36%" cy="40%" r="84%"><stop offset="0%" stop-color="#ecd1a2"/><stop offset="60%" stop-color="#cf9f6a"/><stop offset="100%" stop-color="#85603c"/></radialGradient>
+      <linearGradient id="f4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7a5736"/><stop offset="100%" stop-color="#4a361f"/></linearGradient>
+      <linearGradient id="body4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6e4d82"/><stop offset="100%" stop-color="#4a3158"/></linearGradient>
+      <radialGradient id="lcd4" cx="50%" cy="38%" r="82%"><stop offset="0%" stop-color="#c8d4ab"/><stop offset="100%" stop-color="#8c9a72"/></radialGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#w4)"/>
+    <polygon points="0,520 1000,520 1000,700 0,700" fill="url(#f4)"/>
+    <polygon points="0,520 1000,520 880,556 120,556" fill="#3e2e1c" opacity="0.35"/>
+    <!-- handheld body -->
+    <rect x="156" y="316" width="160" height="234" rx="24" fill="url(#body4)" stroke="#352447" stroke-width="4"/>
+    <rect x="168" y="328" width="136" height="210" rx="16" fill="none" stroke="#8a6aa0" stroke-width="2" opacity="0.6"/>
+    <!-- screen recess + LCD -->
+    <rect x="176" y="340" width="120" height="96" rx="8" fill="#34245a"/>
+    <rect x="186" y="350" width="100" height="76" rx="3" fill="url(#lcd4)" stroke="#26401c" stroke-width="2"/>
+    <!-- falling blocks on the LCD -->
+    <g fill="#2a2233">
+      <rect x="228" y="360" width="11" height="11"/><rect x="239" y="360" width="11" height="11"/><rect x="239" y="371" width="11" height="11"/><rect x="250" y="371" width="11" height="11"/>
+      <rect x="200" y="404" width="11" height="11"/><rect x="211" y="404" width="11" height="11"/><rect x="222" y="404" width="11" height="11"/><rect x="233" y="404" width="11" height="11"/><rect x="255" y="404" width="11" height="11"/>
+    </g>
+    <!-- function buttons, one line -->
+    <g fill="#c0432e"><ellipse cx="190" cy="456" rx="9" ry="6"/><ellipse cx="214" cy="456" rx="9" ry="6"/></g>
+    <g fill="#2a2233"><ellipse cx="258" cy="456" rx="9" ry="6"/><ellipse cx="282" cy="456" rx="9" ry="6"/></g>
+    <!-- D-pad (left) -->
+    <g fill="#2a2233"><rect x="196" y="486" width="14" height="44" rx="4"/><rect x="181" y="501" width="44" height="14" rx="4"/></g>
+    <circle cx="203" cy="508" r="4" fill="#1a1422"/>
+    <!-- action buttons (right) -->
+    <circle cx="278" cy="512" r="16" fill="#c0432e" stroke="#8f2f1e" stroke-width="2"/>
+    <circle cx="252" cy="494" r="11" fill="#3f6fae" stroke="#2c4f80" stroke-width="2"/>
+    <!-- scattered game pieces beside it -->
+    <polygon points="338,556 366,556 352,526" fill="#5d8a34"/>
+    <rect x="372" y="522" width="32" height="32" rx="5" fill="#c75a3a" transform="rotate(8 388 538)"/>
+    <rect x="414" y="528" width="26" height="26" rx="5" fill="#3fae9e" transform="rotate(-10 427 541)"/>
+    <circle cx="458" cy="540" r="15" fill="#e8c878"/>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">Room IV · Where I play</div>
+    <h2>Still a gamer at heart</h2>
+    <p>I've been a gamer my entire life, long before I was a developer, and it's what got me into computer science in the first place. Now I'm finally building them myself, deep in a hands-on Unity and C# program covering real-time systems and gameplay from the ground up, purely because I love it.</p>
+    <div class="meta">Unity · C# · real-time · gameplay · performance</div>
+    <button class="enter" data-study="games">Step inside →</button>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="scene center" id="contact">
+  <div class="bg" data-parallax="0.1"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="w5" cx="50%" cy="66%" r="74%"><stop offset="0%" stop-color="#735733"/><stop offset="55%" stop-color="#473420"/><stop offset="100%" stop-color="#241811"/></radialGradient>
+      <radialGradient id="fire1" cx="50%" cy="72%" r="62%"><stop offset="0%" stop-color="#f3d79a"/><stop offset="50%" stop-color="#cf8a44"/><stop offset="100%" stop-color="#8f4a22"/></radialGradient>
+      <linearGradient id="stone5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a8175"/><stop offset="100%" stop-color="#5f574b"/></linearGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#w5)"/>
+    <!-- hearth floor slab -->
+    <rect x="320" y="592" width="360" height="20" rx="3" fill="url(#stone5)"/>
+    <!-- stone surround -->
+    <rect x="356" y="430" width="48" height="166" fill="url(#stone5)" stroke="#4a4339" stroke-width="2"/>
+    <rect x="596" y="430" width="48" height="166" fill="url(#stone5)" stroke="#4a4339" stroke-width="2"/>
+    <!-- mantel beam -->
+    <rect x="338" y="404" width="324" height="30" rx="3" fill="#6b4f30"/><rect x="338" y="404" width="324" height="8" rx="3" fill="#7d5e3c"/>
+    <!-- firebox interior -->
+    <rect x="404" y="434" width="192" height="162" fill="#160d06"/>
+    <!-- logs -->
+    <g stroke="#2a1d12" stroke-width="3">
+      <rect x="436" y="566" width="128" height="16" rx="8" fill="#5a3a22" transform="rotate(-8 500 574)"/>
+      <rect x="446" y="560" width="118" height="15" rx="7" fill="#6b4426" transform="rotate(7 505 567)"/>
+    </g>
+    <!-- flames -->
+    <path d="M476 566 C462 548 468 528 480 510 C488 530 488 552 476 566Z" fill="#c2702e" opacity="0.85"/>
+    <path d="M524 566 C536 548 532 528 520 510 C512 530 512 552 524 566Z" fill="#c2702e" opacity="0.85"/>
+    <path d="M500 566 C470 540 478 506 500 470 C522 506 530 540 500 566Z" fill="#b85f28"/>
+    <path d="M500 562 C482 540 486 514 500 486 C514 514 518 540 500 562Z" fill="#d8843e"/>
+    <path d="M500 558 C490 542 492 524 500 506 C508 524 510 542 500 558Z" fill="#e8b873"/>
+    <!-- embers -->
+    <circle cx="470" cy="584" r="2.5" fill="#e8c878"/><circle cx="520" cy="586" r="2" fill="#cf9a52"/><circle cx="500" cy="582" r="2.5" fill="#f0d79a"/>
+  </svg></div>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="eyebrow">The hearth</div>
+    <h2>Let's build something.</h2>
+    <p>From Hebron, currently based in Ramallah, available locally in both. Open to onsite roles across the EU &amp; Middle East, and remote internationally, with relocation in 4–6 weeks.</p>
+    <div class="links">
+      <a href="mailto:mohammad.a.ihraiz@gmail.com?subject=Let%27s%20Build%20Something%20Together" id="email-link" data-email="mohammad.a.ihraiz@gmail.com">Email</a>
+      <a href="https://linkedin.com/in/mihraiz" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/MIhraiz" target="_blank" rel="noopener">GitHub</a>
+      <a href="cv.pdf" target="_blank" rel="noopener">Full CV (PDF)</a>
+    </div>
+    <div class="email-toast" id="email-toast" role="status" aria-live="polite">Email copied · opening your mail app</div>
+    <p class="footnote">B.Sc. Computer Science, Birzeit University · Arabic (native), English (C1) · References available on request.</p>
+  </div>
+</section>
+
+<!-- ===================== CASE STUDIES ===================== -->
+<div class="study" id="study-mobile" role="dialog" aria-modal="true" aria-labelledby="t-mobile">
+  <div class="study-inner">
+    <button class="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="20" y1="4" x2="4" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <div class="study-tag">Room I · Case study</div>
+    <h2 id="t-mobile">Betting the mobile stack on Kotlin Multiplatform</h2>
+    <p class="study-lead">I made the technical case for KMP across the company's products, then built the foundation it runs on.</p>
+    <h3>Context</h3>
+    <p>I'm deputy lead on a four-engineer mobile team, co-leading technical strategy and sprint planning. The team had deep Jetpack Compose expertise, but our products were Android-only, and the business needed a path to iOS without doubling the team or maintaining two parallel codebases.</p>
+    <h3>The case I made</h3>
+    <p>I proposed adopting Kotlin Multiplatform and Compose Multiplatform as the company's mobile strategy: reuse the team's existing Compose skills to keep the transition cheap, share business logic, networking and persistence across platforms, and open the door to iOS. I took the argument to the mobile lead first, then presented it to the CTO and leadership.</p>
+    <h3>What I built</h3>
+    <p>Once it was greenlit, I built the core infrastructure of <strong>Omailo</strong>, our first Kotlin Multiplatform product, a mailing application:</p>
+    <ul>
+      <li>A Ktor Client networking layer, with Room and DataStore persistence, wired through a modular Koin dependency-injection setup.</li>
+      <li>Reusable SDK modules for the whole mobile portfolio: Firebase (FCM, Crashlytics, Analytics), SSO authentication, and user-profile management.</li>
+      <li>The offline-first data layer, plus a rich-text editing experience built by bridging a JavaScript editor in a WebView to the KMP layer.</li>
+    </ul>
+    <p>I also contributed to a WebView-based Android product, since discontinued as a business decision: I built its Retrofit networking layer from scratch inside a custom MVP architecture, and resolved deep bugs in the WebView, Jetpack Compose, and Dagger 2 interop layer.</p>
+    <h3>Onfinity: the current build</h3>
+    <p>Right now I lead the mobile, Kotlin Multiplatform side of <strong>Onfinity</strong>, an AI-powered link-in-bio product now in testing. Most of my work is native mobile engineering: refactoring the AI-generated web experience into a proper native mobile experience, handling UI/UX design, fixing bugs, and implementing new features. Alongside that, I analyze requirements and communicate the mobile side's needs with the backend, product, and design teams.</p>
+    <h3>Leading the team</h3>
+    <p>I mentored two mid-level engineers onto Android and Kotlin Multiplatform through pair programming, architecture sessions, and code review. I also built out CI/CD with Jenkins and Fastlane in a Dockerized build environment, deploying automatically to Firebase App Distribution.</p>
+    <h3>Outcome</h3>
+    <p>Kotlin Multiplatform is now the company's official mobile strategy, not just a trial. Omailo is in active development and has already reached staging, where it's used for shareholder testing and demos. Onfinity is in its testing phase, working through the rough edges in its AI-generated flows, with an internal release to shareholders expected in about a month. The shared SDK modules were built for reuse across the mobile portfolio; nothing beyond Omailo and Onfinity has adopted them yet, but they're ready for the next product that needs them.</p>
+    <p>The two engineers I mentored are now comfortable across Android and Kotlin Multiplatform, and own and build their own features end to end.</p>
+    <p>The CI/CD pipeline ended a recurring source of QA confusion: every build now goes out automatically through Firebase App Distribution, signed and consistent, so QA always tests the right version.</p>
+    <div class="study-stack">Kotlin · Kotlin Multiplatform · Compose Multiplatform · Ktor Client · Room · DataStore · Koin · Firebase · Jenkins · Fastlane · Dagger 2</div>
+    <div class="study-links">Shipped, public (Android work at Harri): <a href="https://play.google.com/store/apps/details?id=com.harri.manage" target="_blank" rel="noopener">Harri Live</a> · <a href="https://play.google.com/store/apps/details?id=com.harri.team" target="_blank" rel="noopener">TeamLive</a> · <a href="https://play.google.com/store/apps/details?id=com.harri.hub" target="_blank" rel="noopener">TeamHub</a>. Across the Harri hospitality Android apps, I contributed multi-tenant scheduling, an anonymous-user privacy feature, and a legacy date/time-picker refactor with cross-day shift support.</div>
+  </div>
+</div>
+
+<div class="study" id="study-backend" role="dialog" aria-modal="true" aria-labelledby="t-backend">
+  <div class="study-inner">
+    <button class="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="20" y1="4" x2="4" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <div class="study-tag">Room II · Case study</div>
+    <h2 id="t-backend">Designing services that hold up</h2>
+    <p class="study-lead">A year of backend and system-design work, building the services, and making the architecture calls behind them.</p>
+    <h3>Event-driven architecture</h3>
+    <p>I designed an event-driven microservices architecture for a point-of-sale platform using TypeScript, Express, PostgreSQL and AWS SQS/SNS, for decoupled, scalable communication between services. I built the User and Authentication services with role-based access control, and core parts of the client and shop-management services exposing REST APIs consumed by mobile and web clients.</p>
+    <h3>Ownership and system design</h3>
+    <p>I acted as Product Owner for an ERP-extension workstream for two to three months, leading one developer to deliver custom workflows on top of ERPNext (Frappe), owning requirements, prioritization and delivery. I also authored a 60+ page architectural evaluation for a Chat-as-a-Service platform, surveying real-time protocols, message-queue systems, databases, and language/framework tradeoffs to guide technology selection.</p>
+    <h3>Outcome</h3>
+    <p>Two of the services I designed, Authentication and Shop Management, are live in production, handling login and shop-management flows for the platform. The Chat-as-a-Service evaluation was shelved after a change in leadership, before a technology was chosen.</p>
+    <div class="study-stack">TypeScript · Node · Express · Spring Boot · PostgreSQL · MySQL · AWS (EC2, S3, SQS, SNS, SES) · event-driven · RBAC · REST</div>
+    <div class="study-links">Shipped, public: <a href="https://barakaos.com/" target="_blank" rel="noopener">Baraka PoS</a>.</div>
+  </div>
+</div>
+
+<div class="study" id="study-freelance" role="dialog" aria-modal="true" aria-labelledby="t-freelance">
+  <div class="study-inner">
+    <button class="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="20" y1="4" x2="4" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <div class="study-tag">Room III · Case study</div>
+    <h2 id="t-freelance">Whole products, built solo</h2>
+    <p class="study-lead">Freelance is where I'm full-stack: client side, admin panel, and the backend behind both, owned end to end.</p>
+    <h3>FlashStore.ps</h3>
+    <p>A full-stack web platform I built with AI-assisted development (Claude Code), with an admin panel and a single client experience serving three pricing tiers: VIP resellers, resellers, and normal retail clients, differentiated by tier-based pricing and admin settings like referral commission. I owned the whole thing: data model, backend, both front ends, and deployment.</p>
+    <h3>M&amp;B</h3>
+    <p>In development: an Arabic-first, RTL e-commerce platform supporting both Arabic and English, for a Palestinian retail &amp; wholesale business, serving both retail clients and wholesale sellers, with its own admin panel. Built on Next.js with a deployment pipeline of its own, and designed as a configurable codebase rather than a one-off.</p>
+    <h3>How I approach it</h3>
+    <p>Solo full-stack work is where the generalist instinct pays off most: I take something from requirements through architecture, implementation and deployment, and I'm still the one keeping it running afterward.</p>
+    <h3>Outcome</h3>
+    <p>FlashStore.ps is now used by many phone and computer stores locally as their main digital products supplier. In its initial three months, it generated over 40,000 ILS in revenue.</p>
+    <p>M&amp;B will cut the manual paperwork salesmen currently handle by moving reseller orders into the system. It will also take the business online for the first time, past its physical store and social media, with a dedicated website for browsing and buying.</p>
+    <div class="study-stack">Next.js · React · PostgreSQL · Drizzle / Prisma · Coolify (Hetzner) / cPanel · GitHub · Arabic RTL · admin panels · AI-assisted development · full-stack</div>
+    <div class="study-links">Live: <a href="https://flashstore.ps" target="_blank" rel="noopener">FlashStore.ps</a> · M&amp;B, an Arabic retail/wholesale store (in development).</div>
+  </div>
+</div>
+
+<div class="study" id="study-games" role="dialog" aria-modal="true" aria-labelledby="t-games">
+  <div class="study-inner">
+    <button class="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="20" y1="4" x2="4" y2="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <div class="study-tag">Room IV · Case study</div>
+    <h2 id="t-games">A run at game development</h2>
+    <p class="study-lead">In progress, and proof that I still love learning something completely new.</p>
+    <h3>What it is</h3>
+    <p>I'm currently part-way through a hands-on game-development program with Unity and C#, which I expect to finish in early 2027. It covers real-time game loops, state management, gameplay systems, and the discipline of hitting a performance budget every frame.</p>
+    <h3>Why it's in this house</h3>
+    <p>I've been a gamer my entire life, long before I was an engineer, and it's what got me into computer science in the first place. This is the itch I never got to scratch professionally, and it's not about padding a resume. Real-time systems, state management, and performance discipline show up everywhere in software, not just games, but that's not why I'm doing this. I'm doing it because I love games, and I want to know how they're made.</p>
+    <h3>Outcome</h3>
+    <p>The real outcome I'm after here is the learning itself: being a beginner again, and picking up real-time systems and gameplay engineering from scratch. When the program wraps, the plan is to ship something playable to Google Play, Steam, and itch.io. That's when this room earns a demo.</p>
+    <div class="study-stack">Unity · C# · real-time systems · gameplay · state management · performance</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // email: copy to clipboard (best effort) and open the mail client immediately,
+  // since browsers only allow launching mailto: as a direct response to the click
+  const emailLink=document.getElementById('email-link');
+  const emailToast=document.getElementById('email-toast');
+  if(emailLink){
+    emailLink.addEventListener('click',e=>{
+      e.preventDefault();
+      const address=emailLink.dataset.email;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(address).catch(()=>{});
+      }
+      if(emailToast){emailToast.classList.add('show');setTimeout(()=>emailToast.classList.remove('show'),2600);}
+      window.location.href=emailLink.getAttribute('href');
+    });
+  }
+
+  // on mobile, room art sits left-of-center in its 1000-wide viewBox; the default
+  // center-anchored "slice" crop was cutting it out of view entirely. Anchor left instead.
+  const mobileQuery=matchMedia('(max-width:760px)');
+  const roomBgSvgs=[...document.querySelectorAll('.scene.right .bg svg')];
+  const applyRoomAlignment=()=>{
+    roomBgSvgs.forEach(svg=>svg.setAttribute('preserveAspectRatio',mobileQuery.matches?'xMinYMid slice':'xMidYMid slice'));
+  };
+  applyRoomAlignment();
+  mobileQuery.addEventListener('change',applyRoomAlignment);
+
+  // mobile nav: burger opens a full-height side drawer, blocking scroll while open
+  const burger=document.getElementById('burger');
+  const navLinks=document.getElementById('nav-links');
+  const navBackdrop=document.getElementById('nav-backdrop');
+  const burgerBars=burger?[...burger.querySelectorAll('.bar')]:[];
+  if(burger && navLinks){
+    const setBurgerX=(open)=>{
+      if(burgerBars.length<3)return;
+      burgerBars[0].style.transform=open?'translateY(8px) rotate(45deg)':'';
+      burgerBars[1].style.opacity=open?'0':'';
+      burgerBars[2].style.transform=open?'translateY(-8px) rotate(-45deg)':'';
+    };
+    const closeMenu=()=>{
+      navLinks.classList.remove('open');
+      burger.setAttribute('aria-expanded','false');
+      setBurgerX(false);
+      if(navBackdrop) navBackdrop.classList.remove('show');
+      document.body.classList.remove('locked');
+    };
+    const openMenu=()=>{
+      navLinks.classList.add('open');
+      burger.setAttribute('aria-expanded','true');
+      setBurgerX(true);
+      if(navBackdrop) navBackdrop.classList.add('show');
+      document.body.classList.add('locked');
+    };
+    burger.addEventListener('click',()=>{
+      navLinks.classList.contains('open') ? closeMenu() : openMenu();
+    });
+    navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+    if(navBackdrop) navBackdrop.addEventListener('click',closeMenu);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape') closeMenu();});
+  }
+  const scenes=[...document.querySelectorAll('.scene')];
+  if('IntersectionObserver' in window && !reduce){
+    const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:0.22});
+    scenes.forEach(s=>io.observe(s));
+  } else scenes.forEach(s=>s.classList.add('in'));
+
+  // each section gets its own drifting dots, so they travel with the scene as you scroll
+  scenes.forEach(s=>{const fl=document.createElement('div');fl.className='flies';
+    const n=8+Math.floor(Math.random()*4);
+    for(let i=0;i<n;i++){const f=document.createElement('div');f.className='fly';
+      f.style.left=(Math.random()*100)+'%';f.style.top=(Math.random()*100)+'%';
+      f.style.animationDelay=(-Math.random()*8)+'s';f.style.animationDuration=(6+Math.random()*5)+'s';fl.appendChild(f);}
+    s.appendChild(fl);});
+
+  const bgs=[...document.querySelectorAll('.bg')];
+  if(!reduce){let ticking=false;
+    function park(){ticking=false;const vh=innerHeight;bgs.forEach(bg=>{const r=bg.parentElement.getBoundingClientRect();
+      const prog=(r.top+r.height/2-vh/2)/vh;const amt=parseFloat(bg.dataset.parallax||'0.15');bg.style.transform=`translateY(${prog*amt*-100}px)`;});}
+    addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(park);ticking=true;}},{passive:true});addEventListener('resize',park);park();}
+
+  let lastFocus=null;
+  function open(id){const s=document.getElementById('study-'+id);if(!s)return;lastFocus=document.activeElement;
+    s.classList.add('open');document.body.classList.add('locked');s.querySelector('.close').focus();}
+  function close(){const o=document.querySelector('.study.open');if(!o)return;o.classList.remove('open');document.body.classList.remove('locked');if(lastFocus)lastFocus.focus();}
+  document.querySelectorAll('.enter').forEach(b=>b.addEventListener('click',()=>open(b.dataset.study)));
+  document.querySelectorAll('.study').forEach(s=>{s.addEventListener('click',e=>{if(e.target===s)close();});s.querySelector('.close').addEventListener('click',close);});
+  addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+})();
+</script>
+</body>
+</html>
